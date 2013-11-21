@@ -1,4 +1,4 @@
-package org.aksw.ldac.input;
+package org.aksw.ldac.input.sparql2nl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

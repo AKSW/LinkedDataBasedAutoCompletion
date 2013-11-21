@@ -1,4 +1,4 @@
-package org.aksw.ldac.input;
+package org.aksw.ldac.input.sparql2nl;
 
 import java.util.ListIterator;
 
@@ -10,12 +10,12 @@ import com.hp.hpl.jena.sparql.core.TriplePath;
 import com.hp.hpl.jena.sparql.syntax.ElementPathBlock;
 import com.hp.hpl.jena.sparql.syntax.ElementVisitorBase;
 
-public class ElementVisitor extends ElementVisitorBase {
-	Logger log = LoggerFactory.getLogger(ElementVisitor.class);
+public class ElementVerbalizationVisitor extends ElementVisitorBase {
+	Logger log = LoggerFactory.getLogger(ElementVerbalizationVisitor.class);
 	private String naturalLanguangeQuery;
 	private DBPedia dbpedia;
 
-	public ElementVisitor() {
+	public ElementVerbalizationVisitor() {
 		dbpedia = new DBPedia();
 	}
 
@@ -33,24 +33,34 @@ public class ElementVisitor extends ElementVisitorBase {
 	}
 
 	private String verbalizeSubject(TriplePath tp) {
-		ResultSet res = dbpedia.askDbpedia("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " + "SELECT ?label " + "WHERE {<" + tp.getSubject().getURI() + "> rdfs:label ?label . FILTER(langMatches(lang(?label), \"EN\"))" + "}");
-		return res.next().getLiteral("label").getString();
-
+		if (!tp.getSubject().isVariable()) {
+			String uri = tp.getSubject().getURI();
+			return getLabelFromDBpedia(uri);
+		} else
+			return new String();
 	}
 
 	private String verbalizePredicate(TriplePath tp) {
-		ResultSet res = dbpedia.askDbpedia("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " + "SELECT ?label " + "WHERE {<" + tp.getPredicate().getURI() + "> rdfs:label ?label . FILTER(langMatches(lang(?label), \"EN\"))" + "}");
-		return res.next().getLiteral("label").getString();
+		if (!tp.getPredicate().isVariable()) {
+			String uri = tp.getPredicate().getURI();
+			return getLabelFromDBpedia(uri);
+		} else
+			return new String();
 
 	}
 
 	private String verbalizeObject(TriplePath tp) {
-		// TODO look up in index if not a Literal
-		if (tp.getObject().isURI())
-			return tp.getObject().getURI();
-		else
+		if (tp.getObject().isURI()) {
+			String uri = tp.getObject().getURI();
+			return getLabelFromDBpedia(uri);
+		} else
 			return new String();
 
+	}
+
+	private String getLabelFromDBpedia(String uri) {
+		ResultSet res = dbpedia.askDbpedia("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " + "SELECT ?label " + "WHERE {<" + uri + "> rdfs:label ?label . FILTER(langMatches(lang(?label), \"EN\"))" + "}");
+		return res.next().getLiteral("label").getString();
 	}
 
 	public String getNaturalLanguangeQuery() {
