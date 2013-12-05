@@ -5,6 +5,18 @@
 	<artifactId>LinkedDataBasedAutoCompletion</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Linked Data-based Auto Completion</name>
+	 <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <name>Nexus Staging Repo</name>
+            <url>http://nexus.aws.semweb.unister.de/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus</id>
+            <name>Nexus Snapshot Repo</name>
+            <url>http://nexus.aws.semweb.unister.de/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 	<repositories>
 		<repository>
 			<id>clojars.org</id>
@@ -65,6 +77,12 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.1</version>
+		</dependency>
+		<!-- Prefix Tries -->
+		 <dependency>
+			<groupId>com.unister.semweb</groupId>
+			<artifactId>sparsebytearraytree</artifactId>
+			<version>1.2.10</version>
 		</dependency>
 	</dependencies>
 </project>

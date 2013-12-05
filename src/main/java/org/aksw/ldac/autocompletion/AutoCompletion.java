@@ -1,10 +1,10 @@
 package org.aksw.ldac.autocompletion;
 
-import java.util.List;
+import java.io.InputStream;
 
 public interface AutoCompletion {
 
-	void setTrainingQueries(List<String> queries);
+	void setTrainingQueries(InputStream training);
 
 	String getFullQuery(String substring);
 

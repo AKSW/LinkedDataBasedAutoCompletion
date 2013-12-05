@@ -1,5 +1,11 @@
 package org.aksw.ldac.eval;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.aksw.ldac.autocompletion.AutoCompletion;
@@ -12,28 +18,43 @@ public class Evaluation {
 	private AutoCompletion ac;
 
 	public double getAreaUnderCurveBetweenLengthOfQueryAndPercentCorrectQueries() {
-		double[] bins = new double[500];
-		//TODO
+		HashMap<String, boolean[]> queries = new HashMap<String, boolean[]>();
 		for (String query : testQueries) {
+			log.debug(query);
+			boolean[] q = new boolean[query.length()];
 			for (int i = 1; i <= query.length(); ++i) {
-				String guessedQuery = ac.getFullQuery(query.substring(0, i));
-				if (query.equals(guessedQuery)) {
-//					 if(true){
-					double d = (double) i / (double) query.length();
-					bins[(int) Math.round(d * (bins.length-1))]++;
+				String substring = query.substring(0, i);
+				String guessedQuery = ac.getFullQuery(substring);
+				log.debug("\t" + substring + "->" + guessedQuery);
+				 if (query.equals(guessedQuery)) {
+					q[i - 1] = true;
+				} else {
+					q[i - 1] = false;
 				}
 			}
+			queries.put(query, q);
 		}
-		for (int i = 0; i < bins.length; ++i) {
-//			bins[i] = bins[i]/(double)testQueries.size();
-			log.info(((double) i / 100.0) + "->" + bins[i]);
+		for (String q : queries.keySet()) {
+			StringBuilder sb = new StringBuilder();
+			for (boolean b : queries.get(q)) {
+				sb.append(b + "\t");
+			}
+			log.debug(sb.toString());
 		}
-
 		double areaUnderCurve = 0;
-		for (int i = 0; i < bins.length; ++i) {
-			areaUnderCurve += bins[i];
+		double samplingRate = 100000;
+		for (double i = 0; i < samplingRate; ++i) {
+			double percentage = i / samplingRate;
+			double areaUnderSamplePoint = 0;
+			for (String query : queries.keySet()) {
+				boolean[] tmp = queries.get(query);
+				if (tmp[(int) (percentage * query.length())]) {
+					areaUnderSamplePoint++;
+				}
+			}
+			areaUnderCurve += areaUnderSamplePoint / queries.size();
 		}
-		return areaUnderCurve / ((bins.length - 1) * (bins.length - 1));
+		return areaUnderCurve/samplingRate  ;
 	}
 
 	public void setAutoCompletionAlgortihm(AutoCompletion ac) {
@@ -41,9 +62,18 @@ public class Evaluation {
 
 	}
 
-	public void setTestQueries(List<String> queries) {
-		this.testQueries = queries;
+	public void setTestQueries(InputStream test) {
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(test));
+			ArrayList<String> tmp = new ArrayList<String>();
+			while (br.ready()) {
+				tmp.add(br.readLine());
+			}
+			br.close();
+			this.testQueries = tmp;
+		} catch (IOException e) {
+			log.error(e.getLocalizedMessage());
+		}
 
 	}
-
 }
