@@ -11,6 +11,10 @@ import com.unister.semweb.wordtree.core.SparseByteArrayTreeFactory;
 import com.unister.semweb.wordtree.core.WordTree;
 
 public class AC_PrefixTrie implements AutoCompletion {
+	public AC_PrefixTrie() {
+		this.tree = new WordTree();
+	}
+
 	Logger log = LoggerFactory.getLogger(AC_PrefixTrie.class);
 	private WordTree tree;
 
@@ -20,19 +24,22 @@ public class AC_PrefixTrie implements AutoCompletion {
 		// if substring not in prefix tree
 		if (positionInPrefixTree == -1)
 			return substring;
-		return tree.rebuildWordFromNodeIndex(positionInPrefixTree);
+		log.debug(substring);
+		try {
+			return tree.rebuildWordFromNodeIndex(positionInPrefixTree);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			log.error("ArrayIndexOutOfBoundsException ->substring: " + substring);
+		}
+		return substring;
 	}
 
 	public void setTrainingQueries(InputStream queryLogFile) {
 		SparseByteArrayTreeFactory factory = new SparseByteArrayTreeFactory();
 		try {
 			WordTree tree = factory.load(queryLogFile);
-			if (this.tree == null) {
-				this.tree = tree;
-			} else {
-				for (String word : tree.insertedWords) {
-					this.tree.insert(word);
-				}
+			tree.fillWords();
+			for (String word : tree.insertedWords) {
+				this.tree.insert(word);
 			}
 		} catch (FileNotFoundException e) {
 			log.error(e.getLocalizedMessage());

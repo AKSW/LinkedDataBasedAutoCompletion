@@ -4,6 +4,7 @@ import java.io.InputStream;
 
 public class AC_LinkedDataGrammar implements AutoCompletion {
 
+
 	public String getFullQuery(String substring) {
 		return substring;
 	}
