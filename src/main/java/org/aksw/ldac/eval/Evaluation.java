@@ -20,6 +20,7 @@ public class Evaluation {
 	public double getAreaUnderCurveBetweenLengthOfQueryAndPercentCorrectQueries() {
 		HashMap<String, boolean[]> queries = new HashMap<String, boolean[]>();
 		for (String query : testQueries) {
+			if(query.length()>0){
 			log.debug(query);
 			boolean[] q = new boolean[query.length()];
 			for (int i = 1; i <= query.length(); ++i) {
@@ -32,7 +33,7 @@ public class Evaluation {
 					q[i - 1] = false;
 				}
 			}
-			queries.put(query, q);
+			queries.put(query, q);}
 		}
 		for (String q : queries.keySet()) {
 			StringBuilder sb = new StringBuilder();

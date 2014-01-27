@@ -46,6 +46,8 @@ public class AC_PrefixTrie implements AutoCompletion {
 		} catch (IOException e) {
 			log.error(e.getLocalizedMessage());
 		}
+	}	public String toString(){
+		return "Prefix Tree";
 	}
 
 }

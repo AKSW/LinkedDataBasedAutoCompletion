@@ -1,14 +1,17 @@
 package org.aksw.ldac.controller;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
+import org.aksw.ldac.autocompletion.AC_LinkedDataGrammar;
 import org.aksw.ldac.autocompletion.AC_Lucene;
 import org.aksw.ldac.autocompletion.AC_PrefixTrie;
 import org.aksw.ldac.autocompletion.AutoCompletion;
@@ -27,35 +30,87 @@ public class AutoCompletionController {
 	}
 
 	private void run() throws FileNotFoundException {
-		// read textual queries
-		String data = "/data/r.usbeck/Dropbox/Dissertation/LinkedDataAutoCompletion/searchHistoryData.txt";//"/data/r.usbeck/bluekiwi_logs/all_cleaned_sorted_uniq.txt";// "verbalizedDBpedia38logs.txt";//"test.txt";//
-String materializedOntology="/data/r.usbeck/Dropbox/Dissertation/LinkedDataAutoCompletion/autocompletion";
-		Integer numberOfCrossValidations = 10;
-		ArrayList<Double> aucs = new ArrayList<Double>();
+		String[] datasets = new String[] { "data/hotelModeSearches_100000.txt", "data/normalModeSearches_100000.txt" };
 
-		log.info("Start working on data: " + data);
-		// hand those to an autocompletion approach for learning
-		for (AutoCompletion ac : new AutoCompletion[] { new AC_Lucene(), new AC_PrefixTrie() }) {
-			log.info("Approach:   " +ac.toString());
-			for (int iteration = 0; iteration < numberOfCrossValidations; iteration++) {
-				File dataFile = new File(data);
-				Pair<InputStream, InputStream> datasets = getPartsOfData(dataFile, numberOfCrossValidations, iteration);
+		HashMap<String, HashMap<String, Double>> approachDatasetValue = new HashMap<String, HashMap<String, Double>>();
 
-				log.debug("Start training of " + ac.toString());
+		for (String data : datasets) {
+			log.info("Start working on data: " + data);
+			for (AutoCompletion ac : new AutoCompletion[] { new AC_Lucene(), new AC_PrefixTrie(), new AC_LinkedDataGrammar("data/autocompletion") }) {
+				log.info("Approach:   " + ac.toString());
+				ArrayList<Double> aucs = new ArrayList<Double>();
+				for (int iteration = 0; iteration < 10; iteration++) {
+					Pair<InputStream, InputStream> crossValidData = getPartsOfData(data, 10, iteration);
 
-				ac.setTrainingQueries(datasets.getRight());
-
-				// evaluate
-				log.debug("Start evaluation of " + ac.toString());
-
-				Evaluation ev = new Evaluation();
-				ev.setTestQueries(datasets.getLeft());
-				ev.setAutoCompletionAlgortihm(ac);
-				aucs.add(ev.getAreaUnderCurveBetweenLengthOfQueryAndPercentCorrectQueries());
-
-				log.debug("Finished evaluation of " + ac.toString());
+					log.debug("Start training of " + ac.toString());
+					ac.setTrainingQueries(crossValidData.getRight());
+					log.debug("Start evaluation of " + ac.toString());
+					Evaluation ev = new Evaluation();
+					ev.setTestQueries(crossValidData.getLeft());
+					ev.setAutoCompletionAlgortihm(ac);
+					aucs.add(ev.getAreaUnderCurveBetweenLengthOfQueryAndPercentCorrectQueries());
+					log.debug("Finished evaluation of " + ac.toString());
+				}
+				log.info("\tAverage AUC = " + average(aucs));
+				HashMap<String, Double> tmp = new HashMap<String, Double>();
+				tmp.put(data, average(aucs));
+				approachDatasetValue.put(ac.toString(), tmp);
 			}
-			log.info("\tAUC = " + average(aucs));
+		}
+		writeLatex(approachDatasetValue, datasets);
+	}
+
+	private void writeLatex(HashMap<String, HashMap<String, Double>> approachDatasetValue, String[] datasets) {
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter("Autocompletion.tex"));
+			bw.write("\\begin{table*}[htb!]");
+			bw.newLine();
+			bw.write("\\centering");
+			bw.newLine();
+			bw.write("\\caption{Evaluation of Linked Data Approaches.}");
+			bw.newLine();
+			bw.write("\\begin{tabular}{cccc}");
+			bw.newLine();
+			bw.write("\\toprule");
+			bw.newLine();
+
+			int i = 0;
+			bw.write("&");
+			for (String approach : approachDatasetValue.keySet()) {
+				bw.write("\\textbf{" + approach + "} ");
+				i++;
+				if (i < approachDatasetValue.keySet().size()) {
+					bw.write("&");
+				} else {
+					bw.write("\\\\");
+				}
+			}
+			bw.newLine();
+			bw.write("\\midrule");
+			bw.newLine();
+
+			for (String dataset : datasets) {
+				i = 0;
+				bw.write(dataset+"&");
+				for (String approach : approachDatasetValue.keySet()) {
+					bw.write("" + approachDatasetValue.get(approach).get(dataset) + "");
+					i++;
+					if (i < approachDatasetValue.keySet().size()) {
+						bw.write("&");
+					} else {
+						bw.write("\\\\");
+					}
+				}bw.newLine();
+			}
+			bw.write("\\bottomrule");
+			bw.newLine();
+			bw.write("\\end{tabular}");
+			bw.newLine();
+			bw.write("\\end{table*}");
+
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -67,7 +122,7 @@ String materializedOntology="/data/r.usbeck/Dropbox/Dissertation/LinkedDataAutoC
 		return sum / aucs.size();
 	}
 
-	private Pair<InputStream, InputStream> getPartsOfData(File dataFile, int numberOfParts, int testNumber) {
+	private Pair<InputStream, InputStream> getPartsOfData(String dataFile, int numberOfParts, int testNumber) {
 		StringBuilder left = new StringBuilder();
 		StringBuilder right = new StringBuilder();
 		ByteArrayInputStream leftStream = null;

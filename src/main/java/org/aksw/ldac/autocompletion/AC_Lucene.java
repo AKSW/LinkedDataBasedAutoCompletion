@@ -11,9 +11,11 @@ import org.apache.lucene.search.suggest.Lookup.LookupResult;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester;
 import org.apache.lucene.search.suggest.analyzing.FuzzySuggester;
 import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AC_Lucene implements AutoCompletion {
-
+	Logger log = LoggerFactory.getLogger(AC_Lucene.class);
 	private AnalyzingSuggester suggester;
 
 	public String getFullQuery(String substring) {
@@ -31,10 +33,11 @@ public class AC_Lucene implements AutoCompletion {
 			Dictionary dic = new PlainTextDictionary(training);
 			this.suggester = new FuzzySuggester(new StandardAnalyzer(Version.LUCENE_46));
 			suggester.build(dic);
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-
+	public String toString(){
+		return "Lucene AnalyserSuggester";
+	}
 }
