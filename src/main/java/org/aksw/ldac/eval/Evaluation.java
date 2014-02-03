@@ -20,20 +20,21 @@ public class Evaluation {
 	public double getAreaUnderCurveBetweenLengthOfQueryAndPercentCorrectQueries() {
 		HashMap<String, boolean[]> queries = new HashMap<String, boolean[]>();
 		for (String query : testQueries) {
-			if(query.length()>0){
-			log.debug(query);
-			boolean[] q = new boolean[query.length()];
-			for (int i = 1; i <= query.length(); ++i) {
-				String substring = query.substring(0, i);
-				String guessedQuery = ac.getFullQuery(substring);
-				log.debug("\t" + substring + "->" + guessedQuery);
-				 if (query.equals(guessedQuery)) {
-					q[i - 1] = true;
-				} else {
-					q[i - 1] = false;
+			if (query.length() > 0) {
+				log.debug(query);
+				boolean[] q = new boolean[query.length()];
+				for (int i = 1; i <= query.length(); ++i) {
+					String substring = query.substring(0, i);
+					String guessedQuery = ac.getFullQuery(substring);
+					log.debug("\t" + substring + "->" + guessedQuery);
+					if (query.equals(guessedQuery)) {
+						q[i - 1] = true;
+					} else {
+						q[i - 1] = false;
+					}
 				}
+				queries.put(query, q);
 			}
-			queries.put(query, q);}
 		}
 		for (String q : queries.keySet()) {
 			StringBuilder sb = new StringBuilder();
@@ -55,7 +56,7 @@ public class Evaluation {
 			}
 			areaUnderCurve += areaUnderSamplePoint / queries.size();
 		}
-		return areaUnderCurve/samplingRate  ;
+		return areaUnderCurve / samplingRate;
 	}
 
 	public void setAutoCompletionAlgortihm(AutoCompletion ac) {
@@ -76,5 +77,9 @@ public class Evaluation {
 			log.error(e.getLocalizedMessage());
 		}
 
+	}
+
+	public void setTestQueries(List<String> test) {
+		this.testQueries = test;
 	}
 }
