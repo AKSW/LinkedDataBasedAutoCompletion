@@ -19,7 +19,7 @@ import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
 
-public class SPARQL {
+public class SparqlEndpoint {
 	private static final String DBPEDIA_ENDPOINT = "DBPEDIA_ENDPOINT";
 	private static final String DBPEDIA_NAMED_GRAPH = "DBPEDIA_NAMEDGRAPH";
 	private static final String DBPEDIA_CACHE = "DBPEDIA_CACHE";
@@ -29,9 +29,9 @@ public class SPARQL {
 
 	private QueryExecutionFactoryPaginated dbpediaEndpoint;
 	private QueryExecutionFactoryPaginated hotelEndpoint;
-	private static Logger log = LoggerFactory.getLogger(SPARQL.class);
+	private static Logger log = LoggerFactory.getLogger(SparqlEndpoint.class);
 
-	public SPARQL() {
+	public SparqlEndpoint() {
 		dbpediaEndpoint = createSPARLEndpoint(DBPEDIA_ENDPOINT, DBPEDIA_NAMED_GRAPH, DBPEDIA_CACHE);
 		hotelEndpoint = createSPARLEndpoint(HOTEL_ENDPOINT, HOTEL_NAMEDGRAPH, HOTEL_CACHE);
 	}
@@ -81,7 +81,7 @@ public class SPARQL {
 	}
 
 	public static void main(String[] args) {
-		SPARQL sp = new SPARQL();
+		SparqlEndpoint sp = new SparqlEndpoint();
 		// String query =
 		// "Select ?s { ?s a <http://dbpedia.org/ontology/City>. }";
 		// log.debug(ResultSetFormatter.asText(sp.sparqlDBpedia(query)));
